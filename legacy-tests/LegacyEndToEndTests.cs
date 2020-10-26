@@ -12,7 +12,17 @@ namespace Legacy.Tests
         public void CanStartLegacyUi()
         {
             application.StartLegacyUi();
-            Assert.AreEqual("[resultado]", application.GetResultText());
+        }
+
+        [Test]
+        public void CanRequestResultForQuilmes()
+        {
+            application.StartLegacyUi();
+            application.RequestWeatherFor("Quilmes");
+            
+            var result = application.GetResultText();
+
+            Assert.Contains(result, new string[] { "SI!!!", "No" });
         }
 
         [SetUp]
@@ -26,16 +36,5 @@ namespace Legacy.Tests
         {
             application.Stop();
         }
-
-        //public void CanStartLegacyUi2()
-        //{
-        //    var jsonConSudeste = @"{
-        //        'list': [ { 'wind': { 'deg': 135 } } ]
-        //    }";
-        //    var runner = new ApplicationRunner(new Service(new FakeApiClient(jsonConSudeste)));
-
-        //    runner.ForecastFor("Quilmes");
-        //    runner.Shows("SI!!!");
-        //}
     }
 }

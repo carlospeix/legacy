@@ -1,38 +1,60 @@
-﻿using FlaUI.Core;
-using FlaUI.UIA3;
-using FlaUI.Core.AutomationElements;
-using NUnit.Framework;
+﻿using System;
 using System.Diagnostics;
+using NUnit.Framework;
+using FlaUI.Core;
+using FlaUI.Core.Tools;
+using FlaUI.Core.AutomationElements;
+using FlaUI.UIA2;
 
 namespace Legacy.Tests.Helpers
 {
     internal class ApplicationRunner
     {
-        private const string appPath = @"C:\Users\carlos\src\legacy\legacy-ui\bin\Debug\legacy-ui.exe";
-        
         private Application app;
 
         internal void StartLegacyUi()
         {
-            var startInfo = new ProcessStartInfo(appPath);
-            app = Application.Launch(startInfo);
-
-            using (var automation = new UIA3Automation())
+            var startInfo = new ProcessStartInfo("legacy-ui.exe")
             {
-                Assert.AreEqual("Legacy Weather", app.GetMainWindow(automation).Title);
+                WorkingDirectory = @"C:\Users\carlos\src\legacy\legacy-ui\bin\Debug"
+            };
+            app = Application.Launch(startInfo);
+            
+            using (var automation = new UIA2Automation())
+            {
+                var window = app.GetMainWindow(automation);
+                Assert.AreEqual("Legacy Weather", window.Title);
+                Assert.AreEqual("[resultado]",
+                    window.FindFirstDescendant(cf => cf.ByAutomationId("labelResultado")).AsLabel().Text);
+            }
+        }
+
+        internal void RequestWeatherFor(string location)
+        {
+            using (var automation = new UIA2Automation())
+            {
+                var window = app.GetMainWindow(automation);
+
+                var textLocation = window.FindFirstDescendant(cf => cf.ByAutomationId("textCiudad")).AsTextBox();
+                textLocation.Text = location;
+
+                var buttonSearch = window.FindFirstDescendant(cf => cf.ByAutomationId("buttonBuscar")).AsButton();
+                buttonSearch.Click();
             }
         }
 
         internal string GetResultText()
         {
-            using (var automation = new UIA3Automation())
+            using (var automation = new UIA2Automation())
             {
                 var window = app.GetMainWindow(automation);
+                
+                var retryResult = Retry.While<string>(
+                    () => window.FindFirstDescendant(cf => cf.ByAutomationId("labelResultado")).AsLabel().Text,
+                    (value) => value == "[resultado]",
+                    TimeSpan.FromSeconds(5));
 
-                var resultLabel = window.FindFirstDescendant(cf => cf.ByAutomationId("labelResultado")).AsLabel();
-                Assert.NotNull(resultLabel, "No encontrada la etiqueta de resultado con nombre labelResultado");
-
-                return resultLabel.Text;
+                return retryResult.Result;
             }
         }
 
