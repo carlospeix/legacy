@@ -22,7 +22,7 @@ namespace Legacy.Tests
             
             var result = application.GetResultText();
 
-            Assert.Contains(result, new string[] { "SI!!!", "No" });
+            Assert.Contains(result, new string[] { "SI!!!", "No, mantenimiento!" });
         }
 
         [SetUp]
