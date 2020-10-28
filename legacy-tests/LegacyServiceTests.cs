@@ -18,5 +18,17 @@ namespace Legacy.Tests
 
             Assert.That(service.Navegamos("irrelevante"), Is.True);
         }
+
+        [Test]
+        public void NoSePuedeNavegarConNorte()
+        {
+            var jsonConNorte = JsonConvert.DeserializeObject<dynamic>(@"{
+                'list': [ { 'wind': { 'deg': 0 } } ]
+            }");
+
+            var service = Service.WithProxy(new FakeApiProxy(jsonConNorte));
+
+            Assert.That(service.Navegamos("irrelevante"), Is.False);
+        }
     }
 }
