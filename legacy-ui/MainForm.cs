@@ -5,20 +5,22 @@ namespace Legacy.UI
 {
     public partial class MainForm : Form
     {
+        private readonly Service _service;
+
         public MainForm()
         {
             InitializeComponent();
+
+            _service = Service.WithDefaultProxy();
         }
 
         private void buttonBuscar_Click(object sender, EventArgs e)
         {
-            var service = new Service();
-
             Cursor = Cursors.WaitCursor;
 
             try
             {
-                labelResultado.Text = service.Navegamos(textCiudad.Text) ? "SI!!!" : "No, mantenimiento!";
+                labelResultado.Text = _service.Navegamos(textCiudad.Text) ? "SI!!!" : "No, mantenimiento!";
             }
             catch (Exception ex)
             {

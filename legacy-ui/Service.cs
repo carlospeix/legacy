@@ -1,46 +1,23 @@
-﻿using Newtonsoft.Json;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Net.Http;
-using System.Net.Http.Headers;
-using System.Text;
-using System.Threading.Tasks;
-
-namespace Legacy.UI
+﻿namespace Legacy.UI
 {
     public class Service
     {
-        private const string API_URL = "https://api.openweathermap.org/data/2.5/forecast";
+        public static Service WithDefaultProxy() => new Service(new ApiProxy(Properties.Settings.Default.OpenWeatherAppId));
+        public static Service WithProxy(ApiProxy proxy) => new Service(proxy);
+
+        private readonly ApiProxy _apiClient;
+
+        private Service(ApiProxy apiClient)
+        {
+            _apiClient = apiClient;
+        }
 
         public bool Navegamos(string location)
         {
-            var appId = Properties.Settings.Default.OpenWeatherAppId;
-
-            using (var client = new HttpClient())
-            {
-                client.BaseAddress = new Uri(API_URL);
-                client.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
-
-                // List data response.
-                var response = client.GetAsync($"?q={location}&units=metric&appid={appId}").Result;
-                if (response.IsSuccessStatusCode)
-                {
-                    var content = response.Content.ReadAsStringAsync().Result;
-                    var wd = JsonConvert.DeserializeObject<dynamic>(content);
-                    return Compute(wd);
-                }
-                else if (response.StatusCode == System.Net.HttpStatusCode.NotFound)
-                {
-                    throw new ApplicationException($"Ciudad '{location}' no encontrada");
-                }
-                else
-                {
-                    throw new ApplicationException($"{response.StatusCode} ({response.ReasonPhrase})");
-                }
-            }
-
+            var wd = _apiClient.GetData(location);
+            return Compute(wd);
         }
+
         private bool Compute(dynamic wd)
         {
             foreach (var data in wd.list)
