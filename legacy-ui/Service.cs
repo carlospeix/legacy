@@ -15,10 +15,10 @@
         public bool Navegamos(string location)
         {
             var wd = _apiClient.GetData(location);
-            return Compute(wd);
+            return TrivialLogicCompute(wd);
         }
 
-        private bool Compute(dynamic wd)
+        private bool TrivialLogicCompute(dynamic wd)
         {
             foreach (var data in wd.list)
             {
